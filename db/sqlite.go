@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"rss_alert_app/internal/log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -26,13 +27,19 @@ func SetupDB(db *sql.DB) {
 	}
 }
 
-func OpenDB(path string) *sql.DB {
-	db, err := sql.Open("sqlite3", path)
+func OpenDB(path string) (*sql.DB, error) {
+		sqlDB, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
-		log.LogError(err.Error())
-		return nil
+		return nil, fmt.Errorf("open sqlite db: %w", err)
 	}
-	return db
+
+	// Validate the connection early
+	if err := sqlDB.Ping(); err != nil {
+		_ = sqlDB.Close()
+		return nil, fmt.Errorf("ping sqlite db: %w", err)
+	}
+
+	return sqlDB, nil
 }
 
 func AddFeedURL(db *sql.DB, url string) error {
