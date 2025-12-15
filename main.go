@@ -10,8 +10,15 @@ import (
 
 func main() {
 	log.Init()
-	sqlDB := db.OpenDB("rss_alert.db")
-	defer sqlDB.Close()
+	sqlDB, err := db.OpenDB(dbPath)
+	if err != nil {
+		log.LogError("failed to open database", "error", err, "dbPath", dbPath)
+		os.Exit(1)
+	defer func () {
+		if err := sqlDB.Close(); err != nil {
+			log.LogError("failed to close database", "error", err)
+		}
+	}()
 	db.SetupDB(sqlDB)
 
 	if len(os.Args) < 2 {
