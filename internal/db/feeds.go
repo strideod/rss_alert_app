@@ -5,12 +5,6 @@ import (
 	"fmt"
 )
 
-type Feed struct {
-	ID   int
-	Name string
-	URL  string
-}
-
 func GetFeeds(sqlDB *sql.DB) ([]Feed, error) {
 	rows, err := sqlDB.Query("SELECT id, name, url FROM feeds")
 	if err != nil {

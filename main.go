@@ -46,11 +46,17 @@ func main() {
 
 	switch os.Args[1] {
 	case "add":
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: rss_alert_app add [url]")
+		addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+		nameFlag := addCmd.String("name", "", "Name of the feed")
+		addCmd.Parse(os.Args[2:])
+		args := addCmd.Args()
+		if len(args) < 1 {
+			fmt.Println("Usage: rss_alert_app add [--name NAME] [url]")
 			return
 		}
-		err := db.AddFeedURL(sqlDB, os.Args[2])
+		url := args[0]
+		name := *nameFlag
+		err := db.AddFeedURL(sqlDB, name, url)
 		if err == nil {
 			fmt.Println("Feed URL added.")
 		}

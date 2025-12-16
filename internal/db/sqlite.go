@@ -12,11 +12,12 @@ func SetupDB(db *sql.DB) {
 	_, err := db.Exec(`
 	    CREATE TABLE IF NOT EXISTS feeds (
 		    id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT,
-			url TEXT UNIQUE
+			name TEXT NOT NULL,
+			url TEXT NOT NULL UNIQUE
 		);
 		CREATE TABLE IF NOT EXISTS seen_items (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			feed_name TEXT,
 			feed_url TEXT,
 			item_guid TEXT,
 			UNIQUE(feed_url, item_guid)
@@ -42,8 +43,14 @@ func OpenDB(path string) (*sql.DB, error) {
 	return sqlDB, nil
 }
 
-func AddFeedURL(db *sql.DB, url string) error {
-	_, err := db.Exec("INSERT OR IGNORE INTO feeds (url) VALUES (?)", url)
+type Feed struct {
+	ID   int
+	Name string
+	URL  string
+}
+
+func AddFeedURL(db *sql.DB, name, url string) error {
+	_, err := db.Exec("INSERT OR IGNORE INTO feeds (name, url) VALUES (?, ?)", name, url)
 	if err != nil {
 		log.LogError("Failed to add URL" + err.Error())
 	}
@@ -61,8 +68,8 @@ func GetFeedURLs(sqlDB *sql.DB) ([]Feed, error){
 	for rows.Next() {
 		var f Feed
 		var name sql.NullString
-		if err := rows.Scan(&f.ID, &name, &f.URL); err == nil {
-			return nil, err
+		if err := rows.Scan(&f.ID, &name, &f.URL); err != nil {
+			return nil, fmt.Errorf("scan feed row %w",err)
 		}
 		if name.Valid {
 			f.Name = name.String
