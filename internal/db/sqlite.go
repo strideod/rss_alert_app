@@ -9,6 +9,8 @@ import (
 
 )
 
+
+
 func SetupDB(db *sql.DB) {
 	_, err := db.Exec(`
 	    CREATE TABLE IF NOT EXISTS feeds (
@@ -28,7 +30,7 @@ func SetupDB(db *sql.DB) {
 }
 
 func OpenDB(path string) (*sql.DB, error) {
-		sqlDB, err := sql.Open("sqlite3", dbPath)
+	sqlDB, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite db: %w", err)
 	}

@@ -1,24 +1,42 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"rss_alert_app/internal/db"
 	"rss_alert_app/internal/feeds"
 	"rss_alert_app/internal/log"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
 	log.Init()
+
+	var dbPathFlag string
+
+	flag.StringVar(&dbPathFlag, "db-path", "", "Path to SQLite database file")
+	flag.Parse()
+
+	dbPath, err := resolveDBPath(dbPathFlag)
+	if err != nil {
+		log.LogError("database path resolution failed", "error", err)
+		os.Exit(1)
+	}
+
 	sqlDB, err := db.OpenDB(dbPath)
 	if err != nil {
 		log.LogError("failed to open database", "error", err, "dbPath", dbPath)
 		os.Exit(1)
+	}
 	defer func () {
 		if err := sqlDB.Close(); err != nil {
 			log.LogError("failed to close database", "error", err)
 		}
 	}()
+
 	db.SetupDB(sqlDB)
 
 	if len(os.Args) < 2 {
@@ -67,4 +85,16 @@ func main() {
 	default:
 		fmt.Println("Unknown command. Usage: rss_alert_app [add|list|update|delete|fetch] [url]")
 	}
+}
+
+func resolveDBPath(flagValue string) (string, error) {
+	if flagValue != "" {
+		return flagValue, nil
+	}
+
+	if env := os.Getenv("DB_PATH"); env != "" {
+		return env, nil
+	}
+
+	return "", fmt.Errorf("DB_PATH not set  (use --db-path or environment variable)")
 }
