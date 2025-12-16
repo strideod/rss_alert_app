@@ -2,9 +2,9 @@ package feeds
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"database/sql"
 	"strings"
 
 	"rss_alert_app/internal/db"
@@ -31,22 +31,23 @@ func itemKey(item *gofeed.Item) string {
 
 func FetchFeeds(sqlDB *sql.DB) {
 	// Implementation for fetching RSS feeds will go here
-	feedURLs := db.GetFeedURLs(sqlDB)
-	if len(feedURLs) == 0 {
-		log.LogWarning("No feed URLs found in database", "URLS", feedURLs)
+	feeds, err := db.GetFeeds(sqlDB)
+	if err != nil {
+		log.LogError("Failed to get feeds from database", "error", err)
 		return
 	}
-	fp := gofeed.NewParser()
 
-	feeds := make([]struct {
-		URL  string
-		Name string
-	}, 0, len(feedURLs))
+	if len(feeds) == 0 {
+		log.LogWarning("No feeds found in database", "URLS", feeds)
+		return
+	}
+
+	fp := gofeed.NewParser()
 
 	for _, feed := range feeds {
 		parsedFeed, err := fp.ParseURL(feed.URL)
 		if err != nil {
-			log.LogError("Failed to parse feed", "url", feed.URL, "error", err)
+			log.LogError("Failed to parse feed", "name", feed.Name, "url", feed.URL, "error", err)
 			continue
 		}
 
@@ -69,7 +70,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			fmt.Printf("[%s] %s\n%s\n\n", feed.Name, item.Title, item.Link)
 
 			if err := db.MarkSeen(sqlDB, feed.URL, key); err != nil {
-				log.LogError("mark seen failed", "feed", feed.URL, "key", key, "error", err)
+				log.LogError("mark seen failed", "feed_name", feed.Name, "feed_url", feed.URL, "key", key, "error", err)
 			}
 		}
 	}

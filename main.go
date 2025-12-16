@@ -55,7 +55,11 @@ func main() {
 			fmt.Println("Feed URL added.")
 		}
 	case "list":
-		urls := db.GetFeedURLs(sqlDB)
+		urls, err := db.GetFeedURLs(sqlDB)
+		if err != nil {
+			fmt.Println("Failed to get feed URLs:", err)
+			return
+		}
 		if len(urls) == 0 {
 			fmt.Println("No feed URLs found.")
 		}

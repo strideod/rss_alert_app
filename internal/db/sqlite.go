@@ -6,15 +6,13 @@ import (
 	"rss_alert_app/internal/log"
 
 	_ "github.com/mattn/go-sqlite3"
-
 )
-
-
 
 func SetupDB(db *sql.DB) {
 	_, err := db.Exec(`
 	    CREATE TABLE IF NOT EXISTS feeds (
 		    id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT,
 			url TEXT UNIQUE
 		);
 		CREATE TABLE IF NOT EXISTS seen_items (
@@ -52,22 +50,28 @@ func AddFeedURL(db *sql.DB, url string) error {
 	return err
 }
 
-func GetFeedURLs(db *sql.DB) ([]string) {
-	rows, err := db.Query("SELECT url FROM feeds")
+func GetFeedURLs(sqlDB *sql.DB) ([]Feed, error){
+	rows, err := sqlDB.Query("SELECT id, name, url FROM feeds")
 	if err != nil {
-		log.LogError(err.Error())
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
-	var urls []string
+	var out []Feed
 	for rows.Next() {
-		var url string
-		if err := rows.Scan(&url); err == nil {
-			urls = append(urls, url)
+		var f Feed
+		var name sql.NullString
+		if err := rows.Scan(&f.ID, &name, &f.URL); err == nil {
+			return nil, err
 		}
+		if name.Valid {
+			f.Name = name.String
+		} else {
+			f.Name = ""
+		}
+		out = append(out, f)
 	}
-	return urls
+	return out, rows.Err()
 }
 
 func UpdateFeedURL(db *sql.DB, oldURL, newURL string) error {
