@@ -2,7 +2,14 @@ package models
 
 import "time"
 
+type Feed struct {
+	ID int
+	Name string
+	URL string
+}
+
 type Incident struct {
+	ID int
 	FeedID int
 	IncidentKey string
 	Title string
@@ -16,11 +23,13 @@ type Incident struct {
 	LastEventGUID string
 }
 
-type Feed struct {
+type Event struct {
+	ID int
 	FeedID   int
 	IncidentKey string
 	EventGUID string
 	ContentHash string
+	FeedName string
 	Title string
 	Link string
 	DerivedStatus string
