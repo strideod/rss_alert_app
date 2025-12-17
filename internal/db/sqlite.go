@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"rss_alert_app/internal/log"
+	"rss_alert_app/internal/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -90,12 +91,6 @@ func OpenDB(path string) (*sql.DB, error) {
 	return sqlDB, nil
 }
 
-type Feed struct {
-	ID   int
-	Name string
-	URL  string
-}
-
 func AddFeedURL(db *sql.DB, name, url string) error {
 	_, err := db.Exec("INSERT OR IGNORE INTO feeds (name, url) VALUES (?, ?)", name, url)
 	if err != nil {
@@ -104,24 +99,24 @@ func AddFeedURL(db *sql.DB, name, url string) error {
 	return err
 }
 
-func GetFeedURLs(sqlDB *sql.DB) ([]Feed, error){
+func GetFeedURLs(sqlDB *sql.DB) ([]models.Feed, error){
 	rows, err := sqlDB.Query("SELECT id, name, url FROM feeds")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var out []Feed
+	var out []models.Feed
 	for rows.Next() {
-		var f Feed
+		var f models.Feed
 		var name sql.NullString
-		if err := rows.Scan(&f.ID, &name, &f.URL); err != nil {
+		if err := rows.Scan(&f.FeedID, &name, &f.Link); err != nil {
 			return nil, fmt.Errorf("scan feed row %w",err)
 		}
 		if name.Valid {
-			f.Name = name.String
+			f.Title = name.String
 		} else {
-			f.Name = ""
+			f.Title = ""
 		}
 		out = append(out, f)
 	}

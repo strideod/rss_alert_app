@@ -45,9 +45,9 @@ func FetchFeeds(sqlDB *sql.DB) {
 	fp := gofeed.NewParser()
 
 	for _, feed := range feeds {
-		parsedFeed, err := fp.ParseURL(feed.URL)
+		parsedFeed, err := fp.ParseURL(feed.Link)
 		if err != nil {
-			log.LogError("Failed to parse feed", "name", feed.Name, "url", feed.URL, "error", err)
+			log.LogError("Failed to parse feed", "name", feed.Title, "url", feed.Link, "error", err)
 			continue
 		}
 
@@ -57,9 +57,9 @@ func FetchFeeds(sqlDB *sql.DB) {
 				continue
 			}
 
-			seen, err := db.IsSeen(sqlDB, feed.URL, key)
+			seen, err := db.IsSeen(sqlDB, feed.Link, key)
 			if err != nil {
-				log.LogError("seen check failed", "feed_url", feed.URL, "key", key, "error", err)
+				log.LogError("seen check failed", "feed_url", feed.Link, "key", key, "error", err)
 				continue
 			}
 			if seen {
@@ -67,10 +67,10 @@ func FetchFeeds(sqlDB *sql.DB) {
 			}
 
 			// NEW ITEM -> print and mark seen
-			fmt.Printf("[%s] %s\n%s\n\n", feed.Name, item.Title, item.Link)
+			fmt.Printf("[%s] %s\n%s\n\n", feed.Title, item.Title, item.Link)
 
-			if err := db.MarkSeen(sqlDB, feed.URL, key); err != nil {
-				log.LogError("mark seen failed", "feed_name", feed.Name, "feed_url", feed.URL, "key", key, "error", err)
+			if err := db.MarkSeen(sqlDB, feed.Link, key); err != nil {
+				log.LogError("mark seen failed", "feed_name", feed.Title, "feed_url", feed.Link, "key", key, "error", err)
 			}
 		}
 	}

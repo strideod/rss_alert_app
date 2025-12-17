@@ -3,19 +3,21 @@ package db
 import (
 	"database/sql"
 	"fmt"
+
+	"rss_alert_app/internal/models"
 )
 
-func GetFeeds(sqlDB *sql.DB) ([]Feed, error) {
+func GetFeeds(sqlDB *sql.DB) ([]models.Feed, error) {
 	rows, err := sqlDB.Query("SELECT id, name, url FROM feeds")
 	if err != nil {
 		return nil, fmt.Errorf("query feeds: %w", err)
 	}
 	defer rows.Close()
 
-	out := make([]Feed, 0, 8)
+	out := make([]models.Feed, 0, 8)
 	for rows.Next() {
-		var f Feed
-		if err := rows.Scan(&f.ID, &f.Name, &f.URL); err != nil {
+		var f models.Feed
+		if err := rows.Scan(&f.FeedID, &f.Title, &f.Link); err != nil {
 			return nil, fmt.Errorf("scan feed row: %w", err)
 		}
 		out = append(out, f)
