@@ -11,7 +11,7 @@ import (
 
 var strongRe = regexp.MustCompile(`(?is)<strong>\s*([^<]+?)\s*</strong>`)
 
-func IncidentKeyFromLink (link string) (string, bool) {
+func EventKeyFromLink (link string) (string, bool) {
 	// Parse URL
 	parsed, err := url.Parse(link)
 	if err != nil {

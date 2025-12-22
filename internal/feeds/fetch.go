@@ -60,10 +60,10 @@ func FetchFeeds(sqlDB *sql.DB) {
 				continue
 			}
 
-			incidentKey, ok := IncidentKeyFromLink(item.Link)
+			eventKey, ok := EventKeyFromLink(item.Link)
 			if !ok {
 				// fallback grouping if not statuspage-like; keep it simple for now
-				incidentKey = strings.ToLower(strings.TrimSpace(item.Title))
+				eventKey = strings.ToLower(strings.TrimSpace(item.Title))
 			}
 
 			derivedStatus := LatestStatusFromDescription(item.Description)
@@ -77,9 +77,9 @@ func FetchFeeds(sqlDB *sql.DB) {
 			}
 
 			// Trigger B: content changed for same incident (Statuspage edits)
-			lastHash, exists, err := db.GetIncidentLastHash(sqlDB, feed.ID, incidentKey)
+			lastHash, exists, err := db.GetIncidentLastHash(sqlDB, feed.ID, eventKey)
 			if err != nil {
-				log.LogError("failed to get incident last hash", "feed_id", feed.ID, "incident_key", incidentKey, "error", err)
+				log.LogError("failed to get incident last hash", "feed_id", feed.ID, "incident_key", eventKey, "error", err)
 				continue
 			}
 			changed := !exists || (lastHash != "" && lastHash != contentHash)
@@ -92,7 +92,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			// Persist event (audit log)
 			ev := models.Event {
 				FeedID:          feed.ID,
-				IncidentKey:     incidentKey,
+				EventKey:        eventKey,
 				EventGUID:       eventGUID,
 				ContentHash:     contentHash,
 				Title:           item.Title,
@@ -105,7 +105,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			}
 
 			if err := db.InsertEventIgnore(sqlDB, ev); err != nil {
-				log.LogError("failed to insert event", "feed_id", feed.ID, "incident_key", incidentKey, "event_guid", eventGUID, "error", err)
+				log.LogError("failed to insert event", "feed_id", feed.ID, "event_key", eventKey, "event_guid", eventGUID, "error", err)
 				continue
 			}
 
@@ -113,7 +113,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			now := time.Now().UTC()
 			inc := models.Incident{
 				FeedID:        feed.ID,
-				IncidentKey:   incidentKey,
+				EventKey:   eventKey,
 				Title:         item.Title,
 				Link:          item.Link,
 				Status:        derivedStatus,
@@ -132,7 +132,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			}
 
 			if err := db.UpsertIncident(sqlDB, inc); err != nil {
-				log.LogError("failed to upsert incident", "feed_id", feed.ID, "incident_key", incidentKey, "error", err)
+				log.LogError("failed to upsert incident", "feed_id", feed.ID, "event_key", eventKey, "error", err)
 				continue
 			}
 

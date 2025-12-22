@@ -11,7 +11,7 @@ type Feed struct {
 type Incident struct {
 	ID int
 	FeedID int
-	IncidentKey string
+	EventKey string
 	Title string
 	Link string
 	Status string
@@ -26,7 +26,7 @@ type Incident struct {
 type Event struct {
 	ID int
 	FeedID   int
-	IncidentKey string
+	EventKey string
 	EventGUID string
 	ContentHash string
 	FeedName string

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestIncidentKeyFromLink(t *testing.T) {
+func TestEventKeyFromLink(t *testing.T) {
 	tests := []struct {
 		link     string
 		wantKey  string
@@ -33,9 +33,9 @@ func TestIncidentKeyFromLink(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		gotKey, gotBool := IncidentKeyFromLink(tt.link)
+		gotKey, gotBool := EventKeyFromLink(tt.link)
 		if gotKey != tt.wantKey || gotBool != tt.wantBool {
-			t.Errorf("IncidentKeyFromLink(%q) = (%q, %v); want (%q, %v)", tt.link, gotKey, gotBool, tt.wantKey, tt.wantBool)
+			t.Errorf("EventKeyFromLink(%q) = (%q, %v); want (%q, %v)", tt.link, gotKey, gotBool, tt.wantKey, tt.wantBool)
 		}
 	}
 }
