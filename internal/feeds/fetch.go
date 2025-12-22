@@ -51,7 +51,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 		parsedFeed, err := fp.ParseURL(feed.URL)
 		if err != nil {
 			log.LogError("Failed to parse feed", "name", feed.Name, "url", feed.URL, "error", err)
-		continue
+			continue
 		}
 
 		for _, item := range parsedFeed.Items {
@@ -90,7 +90,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			}
 
 			// Persist event (audit log)
-			ev := models.Event {
+			ev := models.Event{
 				FeedID:          feed.ID,
 				EventKey:        eventKey,
 				EventGUID:       eventGUID,
@@ -113,7 +113,7 @@ func FetchFeeds(sqlDB *sql.DB) {
 			now := time.Now().UTC()
 			inc := models.Incident{
 				FeedID:        feed.ID,
-				EventKey:   eventKey,
+				EventKey:      eventKey,
 				Title:         item.Title,
 				Link:          item.Link,
 				Status:        derivedStatus,
